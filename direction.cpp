@@ -12,9 +12,8 @@ float y1(float x, float da, float l){
 typedef struct{
     float xAngle;
     float yAngle; 
+
 } angles;
-
-
 
 angles direction(float ta, float tb, float tc){
     angles temp;
@@ -35,16 +34,18 @@ angles direction(float ta, float tb, float tc){
     }
     
     dist = sqrt(pow(y1(x, da, l),2)+pow(x,2));
-    if (dc<0){
-        z = (pow(l,2) - pow(dc,2) - 2*dc*dist) / (2*l);
-    } else {
-        z = (pow(l,2) - pow(dc,2) + 2*dc*dist) / (2*l);
-    }
-    
+    // if (dc<0){
+    //     printf("dc<0\n");
+    //     z = (pow(l,2) - pow(dc,2) - 2*dc*dist) / (2*l);
+    // } else {
+    //     printf("dc>0\n");
+    //     z = (pow(l,2) - pow(dc,2) + 2*dc*dist) / (2*l);
+    // }
+    z = (pow(l,2) - pow(dc,2) - 2*dc*dist) / (2*l);
+
     theta = asin(z/y1(x,da,l));
 
     y = y1(x,da,l)*cos(theta);
-
     temp.xAngle = acos(x/sqrt(pow(x,2)+pow(y,2)))*(180/M_PI);
     temp.yAngle = acos(sqrt(pow(x,2)+pow(y,2))/dist)*(180/M_PI)+90;
 
@@ -56,7 +57,7 @@ string close;
 
 int main(){
     angles angle;
-    angle = direction(0.0001217393420,-0.0001452923347,-0.0001128546813);
+    angle = direction(0.0001,0.00010000001,-0.0001);
     printf("Hello World! \nxy: %f \nyz: %f\n", angle.xAngle, angle.yAngle);
 
 

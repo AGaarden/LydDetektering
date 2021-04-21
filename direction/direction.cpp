@@ -55,7 +55,4 @@ int main(){
     angle = direction(0.0001,0.00010000001,0.0001);
     printf("Hello World! \nxy: %f \nyz: %f\n", angle.xAngle, angle.yAngle);
 
-
-
-    std::cin >> (close);
 }

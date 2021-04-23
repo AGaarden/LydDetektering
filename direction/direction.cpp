@@ -25,6 +25,10 @@ angles direction(float ta, float tb, float tc){
     float x;
     float y;
     float z;
+    float xOffset;
+    float yOffset;
+    float zOffset = 0.20;
+    float kDist;
     float dist;
     float theta;
     if (da*db < 0){
@@ -41,8 +45,10 @@ angles direction(float ta, float tb, float tc){
 
     y = y1(x,da,l)*cos(theta);
 
+    kDist = sqrt(pow(x+xOffset,2)+pow(y+yOffset,2)+pow((z+zOffset),2));
+
     temp.xAngle = acos(x/sqrt(pow(x,2)+pow(y,2)))*(180/M_PI);
-    temp.yAngle = acos(sqrt(pow(x,2)+pow(y,2))/dist)*(180/M_PI)+90;
+    temp.yAngle = acos(sqrt(pow(x,2)+pow(y,2))/kDist)*(180/M_PI)+90;
     //test
     return temp;
 }

@@ -1,12 +1,13 @@
 #include <Arduino.h>
-#include <ESP32Servo.h> /* This is added for the CameraMovement header file */
 
-#include "CameraMovement.h"
+#include "Camera.h"
 
 void setup() {
+  Serial.begin(115200);
   servoSetup();
 }
 
 void loop() {
+  delay(1500);
   testServos();
 }

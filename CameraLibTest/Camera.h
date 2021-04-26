@@ -1,9 +1,3 @@
-/*
- * This file includes the necessary functions and variables to move a camera set on two servos. 
- * Requirements: 
- * - ESP32Servo.h
- */
-
 // make a structure with the necessary angles to point towards an occurrence
 typedef struct {
   float xAngle;
@@ -72,51 +66,4 @@ static void moveCamera(angleSet angles) {
  * Output: None
  * Remarks:
  * Moves the two set up servos from 0 to 180 degrees
- * Can only be called once servoSetup is done
  */
-static void testServos() {
-  Serial.println("Starting servo test.");
-  
-  servo_1.write(0);
-  servo_2.write(0);
-  Serial.print("Servo 1 position: "); Serial.println(servo_1.read());
-  Serial.print("Servo 2 position: "); Serial.println(servo_2.read());
-
-  /* Move servo 1 from 0 to 180 degrees */
-  for (int pos = 0; pos <= 180; pos += 1) {
-    servo_1.write(pos);
-    delay(15);
-  }
-  Serial.print("Servo 1 position: "); Serial.println(servo_1.read());
-  Serial.print("Servo 2 position: "); Serial.println(servo_2.read());
-  delay(3000);
-
-  /* Move servo 2 from 0 to 180 degrees */
-  for (int pos = 0; pos <= 180; pos += 1) {
-    servo_2.write(pos);
-    delay(15);
-  }
-  Serial.print("Servo 1 position: "); Serial.println(servo_1.read());
-  Serial.print("Servo 2 position: "); Serial.println(servo_2.read());
-  delay(3000);
-
-  /* Move servo 1 from 180 to 0 degrees */
-  for (int pos = 180; pos >= 0; pos -= 1) {
-    servo_1.write(pos);
-    delay(15);
-  }
-  Serial.print("Servo 1 position: "); Serial.println(servo_1.read());
-  Serial.print("Servo 2 position: "); Serial.println(servo_2.read());
-  delay(3000);
-
-  /* Move servo 2 from 180 to 0 degrees */
-  for (int pos = 180; pos >= 0; pos -= 1) {
-    servo_2.write(pos);
-    delay(15);
-  }
-  Serial.print("Servo 1 position: "); Serial.println(servo_1.read());
-  Serial.print("Servo 2 position: "); Serial.println(servo_2.read());
-  delay(3000);
-  
-  Serial.println("Servo testing complete.");
-}

@@ -1,69 +1,50 @@
+/*
+ * Camera.h - Library for moving a camera with a set of two servos
+ * Created by Sander Gaarden, April 26, 2021
+ */
+
+/* RESOLUTION RANGE LOOKUP TABLE (From 0-180 on MG996R Servo motors. Parentheses are minimum and maximum outside of 0-180 range)
+ * 8 bit: 5-30 (5-33)
+ * 10 bit: 20-119 (18-134)
+ * 11 bit: 39-238 (36-268) (+5 for map, 2.1%)
+ * 12 bit: 78-477 (71-537) (+5 for map, 1%)
+ * 16 bit: 1220-7600 (1134-8600) (+152 for map, 2%)
+ */
+
+#ifndef Camera_h
+#define Camera_h
+
 // make a structure with the necessary angles to point towards an occurrence
 typedef struct {
   float xAngle;
   float yAngle;
 } angleSet;
 
-// Define the two servo objects, attach pins in setup
-Servo servo_1;
-Servo servo_2;
+class Camera{
+  private:
+    /* PWM properties */
+    static const uint8_t PWM_FREQ = 50;
+    static const uint8_t PWM_CHANNEL_1 = 0; /* Zero indexed */
+    static const uint8_t PWM_CHANNEL_2 = 1; /* Zero indexed */
+    static const uint8_t PWM_RESOLUTION = 11;
 
-/* 
- *  Name: servoSetup
- *  Input: Servo pin 1 (optional), servo pin 2 (optional), period hertz (optional)
- *  Output: None
- *  Remarks:
- *  The following function sets up servos as per the ESP32Servo library
- *  Base servo pins are 18 and 19, and base period hertz is 50
- *  NOTE: Servos only available on pins 2, 4, 5, 12-19, 21-23, 25-27, 32-33
- */
-static void servoSetup(uint8_t servo_pin_1 = 18, uint8_t servo_pin_2 = 19, uint16_t period_hertz = 50); /* Prototype built to make base values */
-static void servoSetup(uint8_t servo_pin_1, uint8_t servo_pin_2, uint16_t period_hertz) {
-  // Allow allocation of all timers for the servo library
-  ESP32PWM::allocateTimer(0);
-  ESP32PWM::allocateTimer(1);
-  ESP32PWM::allocateTimer(2);
-  ESP32PWM::allocateTimer(3);
+    /* Values based on PWM_RESOLUTION, check lookup table */
+    static const uint16_t PWM_MIN = 39;
+    static const uint16_t PWM_MAX = 238;
+    static const uint8_t PWM_MAP_EXTRA = 5; /* Arbitrary value for getting closer to 180 degrees when using map */
 
-  // Set the frequenzy for each servo
-  servo_1.setPeriodHertz(period_hertz);
-  servo_2.setPeriodHertz(period_hertz);
+    /* Base servo pins */
+    static const uint8_t SERVO_PIN_1 = 19;
+    static const uint8_t SERVO_PIN_2 = 18;
 
-  Serial.print("Servo period initialized at "); Serial.print(period_hertz); Serial.println("Hz");
+    /* The functions */
+    uint16_t angleToPwm(uint8_t angle);
+    uint8_t pwmToAngle(uint16_t pwm);
+  public:
+    /* The functions */
+    Camera(uint8_t servo_pin_1 = SERVO_PIN_1, uint8_t servo_pin_2 = SERVO_PIN_2, uint16_t period_hertz = PWM_FREQ);
+    void testServos();
+    void move(angleSet angles);
+};
 
-  // Attach pins to servos
-  servo_1.attach(servo_pin_1);
-  servo_2.attach(servo_pin_2);
-
-  Serial.print("Servo 1 initialized at pin "); Serial.println(servo_pin_1);
-  Serial.print("Servo 2 initialized at pin "); Serial.println(servo_pin_2);
-}
-
-/*
- * Name: moveCamera
- * Input: angleSet structure as shown at the top of this file
- * Output: None
- * Remarks:
- * Moves the camera into the position given
- * Has no inherent error correction
- */
-static void moveCamera(angleSet angles) {
-  int xAngle = round(angles.xAngle); /* Converted for use with the ESP32Servo library */
-  int yAngle = round(angles.yAngle); /* -||- */
-
-  // Serial print line below will print "Moving camera to position: ({xAngle}, {yAngle})"
-  Serial.print("Moving camera to position: (");Serial.print(xAngle);Serial.print(", ");Serial.print(yAngle);Serial.println(")");
-
-  servo_1.write(xAngle);
-  servo_2.write(yAngle);
-
-  Serial.println("Camera moved.");
-}
-
-/*
- * Name: testServos
- * Input: None
- * Output: None
- * Remarks:
- * Moves the two set up servos from 0 to 180 degrees
- */
+#endif

@@ -11,11 +11,12 @@
 #include "esp_system.h"             // ESP specific stuff like debug commands to view heap size.
 #include "esp_log.h"                // ESP 'debug' logging system, eg. the one from i2s read.
 
-#include <math.h>                   
+#include <math.h>
 
-#include <eventdetect.h>
+#include "eventdetect.h"
+#include "direction.h"
 
-unsigned int start_b, end_b;     // Variable for execution measurement
+unsigned int start_b, end_b;        // Variable for execution measurement
 
 void app_main(void)
 {
@@ -25,21 +26,28 @@ void app_main(void)
     static int32_t adc6buff[ADC_LEN];
     static int32_t adc7buff[ADC_LEN];
     
+    angles angle;
+
     i2s_init();
+
     while (1) {
     // Do forever...
         if (sample_checkamplitude(&adc0buff[0], &adc3buff[0], &adc6buff[0], &adc7buff[0])) {
-            int16_t shift0_3, shift0_6, shift0_7;
+            float shift0_3, shift0_6, shift0_7;
 
             start_b = esp_timer_get_time();            
             // Initiate sample shift calculation on the existing buffers.
-            shift0_3 = calc_sample_shift(&adc0buff[0], &adc3buff[0]);
-            shift0_6 = calc_sample_shift(&adc0buff[0], &adc6buff[0]);
-            shift0_7 = calc_sample_shift(&adc0buff[0], &adc7buff[0]);
+            shift0_3 = (float) (calc_sample_shift(&adc0buff[0], &adc3buff[0]))*0.00002;
+            shift0_6 = 0.0; //calc_sample_shift(&adc0buff[0], &adc6buff[0]);
+            shift0_7 = 0.0; //calc_sample_shift(&adc0buff[0], &adc7buff[0]);
             end_b = esp_timer_get_time();            
 
+            //angle = direction(shift0_3, shift0_6 +0.00001, shift0_7);
+            angle = direction(shift0_3, shift0_6, shift0_7);
+            printf("Angle \txy: %f \tyz: %f\n", angle.xAngle, angle.yAngle);
+
             // Print the measured sample shift and also scaled to time based on samplerate.
-            printf("\n[Detected] 0-3: %i \t %.2f us \t 0-6: %i \t %.2f us \t 0-7: %i \t %.2f us \t \n", shift0_3, shift0_3 * 20.0, shift0_6, shift0_6 * 20.0, shift0_7, shift0_7 * 20.0);
+            printf("\n[Detected] 0-3: %.6f s \t 0-6: %.6f s \t 0-7: %.6f s \n", shift0_3, shift0_6, shift0_7);
             printf("Performance timer: %i ms\n", (end_b-start_b)/1000);
         }
     }

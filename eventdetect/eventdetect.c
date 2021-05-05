@@ -62,6 +62,9 @@ esp_err_t i2s_init(void)
     I2S0.clkm_conf.clkm_div_a = 1;
     I2S0.sample_rate_conf.rx_bck_div_num = 2;
 
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    printf("Magic wait time\n");
+
     return ESP_OK;
 }
 

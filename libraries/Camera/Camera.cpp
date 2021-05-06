@@ -27,7 +27,7 @@
  * Base servo pins are 19 and 18, and base period hertz is 50
  * NOTE: Servos only available on pins 2, 4, 5, 12-19, 21-23, 25-27, 32-33
  */
-extern void cameraSetup(uint8_t servo_pin_1, uint8_t servo_pin_2, uint16_t period_hertz) {
+Camera::Camera(uint8_t servo_pin_1, uint8_t servo_pin_2, uint16_t period_hertz) {
   /* Set up PWM channels */
   ledcSetup(PWM_CHANNEL_1, period_hertz, PWM_RESOLUTION);
   ledcSetup(PWM_CHANNEL_2, period_hertz, PWM_RESOLUTION);
@@ -48,7 +48,7 @@ extern void cameraSetup(uint8_t servo_pin_1, uint8_t servo_pin_2, uint16_t perio
  *  Remarks:
  *  The PWM_MAP_EXTRA variable is added arbitrarily to make sure map reaches 180 degrees
  */
-extern uint16_t angleToPwm(uint8_t angle) {
+uint16_t Camera::angleToPwm(uint8_t angle) {
   return map(angle, 0, 180, PWM_MIN, PWM_MAX + PWM_MAP_EXTRA);
 }
 
@@ -59,7 +59,7 @@ extern uint16_t angleToPwm(uint8_t angle) {
  *  Remarks:
  *  None
  */
-extern uint8_t pwmToAngle(uint16_t pwm) {
+uint8_t Camera::pwmToAngle(uint16_t pwm) {
   return map(pwm, PWM_MIN, PWM_MAX, 0, 180);
 }
 
@@ -71,7 +71,7 @@ extern uint8_t pwmToAngle(uint16_t pwm) {
    Moves the camera into the position given
    Has no inherent error correction
 */
-extern void move(angleSet angles) {
+void Camera::move(angleSet angles) {
   ledcWrite(PWM_CHANNEL_1, angleToPwm(round(angles.xAngle)));
   ledcWrite(PWM_CHANNEL_2, angleToPwm(round(angles.yAngle)));
 }
@@ -82,7 +82,7 @@ extern void move(angleSet angles) {
    Remarks:
    Tests the servos by moving them through all 180 positions
 */
-extern void testServos() {
+void Camera::testServos() {
   ledcWrite(PWM_CHANNEL_1, angleToPwm(0));
   ledcWrite(PWM_CHANNEL_2, angleToPwm(0));
 

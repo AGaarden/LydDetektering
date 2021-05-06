@@ -1,0 +1,5 @@
+{
+    "files.associations": {
+        "adc_channel.h": "c"
+    }
+}

@@ -1,17 +1,18 @@
 #include <math.h>
 #include "direction.h"
+#include <Camera.h>
 
 float yy1(float x, float da, float l){
     return (1/2.0)*sqrt( ( (4*pow(x-(0+l/2),2)-pow(da,2))*(pow(l,2)-pow(da,2)) ) / (pow(da,2.0)) );
 }
 
-angles direction(float ta, float tb, float tc){
-    angles temp;
+angleSet direction(float ta, float tb, float tc){
+    angleSet temp;
     int c = 343;
     float da = c*ta;
     float db = c*tb;
     float dc = c*tc;
-    float l = 0.25;
+    float l = 0.15;
     float x;
     float y;
     float z;

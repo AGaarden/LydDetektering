@@ -34,3 +34,4 @@ void conj_array(fft_config_t *fft_plan);
 void convolve(fft_config_t *fft_plan_0, fft_config_t *fft_plan_1);
 float fft_timeshift(float *arr_0, float *arr_1);
 int argmax(fft_config_t *fft_plan, float *input_array);
+float arg_to_sec(int arg, int fs);

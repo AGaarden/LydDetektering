@@ -213,6 +213,10 @@ int argmax(fft_config_t *fft_plan, float *input_array) {
     }
 }
 
+float arg_to_sec(int arg, int fs) {
+    return arg * (1.0 / fs);
+}
+
 float fft_timeshift(float *arr_0, float *arr_1) {
     static fft_config_t *real_fft_plan0 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
     static fft_config_t *real_fft_plan1 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
@@ -227,6 +231,7 @@ float fft_timeshift(float *arr_0, float *arr_1) {
     // 4. Inverse FFT of the convolution
     real_fft(real_ifft_foldning, foldning);
     // 5. Find index of max value in convolution
-    return (float) argmax(real_ifft_foldning, real_ifft_foldning->output);
+    int max_arg = argmax(real_ifft_foldning, real_ifft_foldning->output);
     // 6. Find corresponding time of index
+    return arg_to_sec(max_arg, 50000);
 }

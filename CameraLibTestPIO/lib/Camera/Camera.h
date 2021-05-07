@@ -37,14 +37,18 @@ class Camera{
     static const uint8_t SERVO_PIN_1 = 19;
     static const uint8_t SERVO_PIN_2 = 18;
 
+    /* The current position of the camera gets saved to these variables */
+    uint8_t servo_pos_1;
+    uint8_t servo_pos_2;
+
     /* The functions */
     uint16_t angleToPwm(uint8_t angle);
     uint8_t pwmToAngle(uint16_t pwm);
   public:
     /* The functions */
     Camera(uint8_t servo_pin_1 = SERVO_PIN_1, uint8_t servo_pin_2 = SERVO_PIN_2, uint16_t period_hertz = PWM_FREQ);
+    bool move(angleSet angles);
     void testServos();
-    void move(angleSet angles);
 };
 
 #endif

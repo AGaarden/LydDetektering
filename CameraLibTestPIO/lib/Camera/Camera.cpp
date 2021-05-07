@@ -40,6 +40,9 @@ Camera::Camera(uint8_t servo_pin_1, uint8_t servo_pin_2, uint16_t period_hertz) 
   ledcWrite(PWM_CHANNEL_1, ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN);
   ledcWrite(PWM_CHANNEL_2, ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN);
 
+  servo_pos_1 = ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN;
+  servo_pos_2 = ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN;
+
   Serial.println("Camera setup complete.");
 }
 
@@ -68,14 +71,35 @@ uint8_t Camera::pwmToAngle(uint16_t pwm) {
 /*
    Name: move
    Input: angleSet
-   Output: None
+   Output: A boolean value representing whether or not the camera has moved anything
    Remarks:
    Moves the camera into the position given
+   Only moves if the new position is +-3 degrees in difference
    Has no inherent error correction
 */
-void Camera::move(angleSet angles) {
-  ledcWrite(PWM_CHANNEL_1, angleToPwm(round(angles.xAngle)));
-  ledcWrite(PWM_CHANNEL_2, angleToPwm(round(angles.yAngle)));
+bool Camera::move(angleSet angles) {
+  uint8_t angle_1 = round(angles.xAngle);
+  uint8_t angle_2 = round(angles.yAngle);
+
+  bool moved_1 = false;
+  bool moved_2 = false;
+
+  if(abs(angle_1 - servo_pos_1) > 3) {
+    ledcWrite(PWM_CHANNEL_1, angleToPwm(angle_1));
+    moved_1 = true;
+  }
+
+  if(abs(angle_2 - servo_pos_2) > 3) {
+    ledcWrite(PWM_CHANNEL_2, angleToPwm(angle_2));
+    moved_2 = true;
+  }
+
+  if(!moved_1 && !moved_2) {
+    return false;
+  }
+  else {
+    return true;
+  }
 }
 
 /*

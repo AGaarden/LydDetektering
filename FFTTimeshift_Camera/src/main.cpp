@@ -16,11 +16,7 @@ Camera camera;
 void setup() {
   Serial.begin(921600);
   i2s_init();
-  Camera camera();
 
-  camera.move(angles);
-  delay(1000);
-  camera.move(angles4);
   Serial.println("System started...");
 }
 
@@ -55,8 +51,7 @@ void loop() {
       //   //printf("%i;%f;%f;%f\n", i, adc0buff[i], real_fft_plan0->output[i], real_ifft_plan0->output[i]);
       //   printf("%i;%f;%f;%f;%f;%f;%f;%f\n", i, adc0buff[i], real_fft_plan0->output[i], real_ifft_plan0->output[i],   adc3buff[i], real_fft_plan1->output[i], real_ifft_plan1->output[i], real_ifft_foldning->output[i]);
       // }
-
-      printf("%f samples\t%i ms\n", shift0_3, (end_b-start_b)/1000);
+      printf("%f ms\t %f ms\t %f ms\t %f.2°\t %f.2°\n", shift0_3, shift0_6, shift0_7, angles.X, angles.Y);
     }
   }
 }

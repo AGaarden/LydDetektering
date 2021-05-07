@@ -11,6 +11,11 @@
  * 16 bit: 1220-7600 (1134-8600) (+152 for map, 2%)
  */
 
+/* Include necessary libraries */
+#include <esp32-hal-ledc.h>
+#include <Esp.h>
+#include <stdint.h>
+
 #ifndef Camera_h
 #define Camera_h
 

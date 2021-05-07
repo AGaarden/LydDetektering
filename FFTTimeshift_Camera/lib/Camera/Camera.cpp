@@ -3,11 +3,6 @@
    Created by Sander Gaarden, April 26, 2021
 */
 
-/* Include necessary libraries */
-#include <esp32-hal-ledc.h>
-#include <Esp.h>
-#include <stdint.h>
-
 /* Include header file */
 #include "Camera.h"
 

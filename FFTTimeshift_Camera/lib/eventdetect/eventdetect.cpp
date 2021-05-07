@@ -207,7 +207,7 @@ int argmax(fft_config_t *fft_plan, float *input_array) {
     }
 
     if (max_i / 2 > 512) {
-        return 1024 - max_i / 2;
+        return -(1024 - max_i / 2);
     } else {
         return max_i/2;
     }

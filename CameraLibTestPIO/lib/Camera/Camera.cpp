@@ -27,21 +27,27 @@
  * Base servo pins are 19 and 18, and base period hertz is 50
  * NOTE: Servos only available on pins 2, 4, 5, 12-19, 21-23, 25-27, 32-33
  */
-Camera::Camera(uint8_t servo_pin_1, uint8_t servo_pin_2, uint16_t period_hertz) {
+Camera::Camera(uint8_t servo_pin_1, uint8_t servo_pin_2, uint16_t period_hertz, uint8_t angle_variation) {
+  /* Set variables given to constructor */
+  _servo_pin_1 = servo_pin_1;
+  _servo_pin_2 = servo_pin_2;
+  _pwm_freq = period_hertz;
+  _angle_variation = angle_variation;
+  
   /* Set up PWM channels */
-  ledcSetup(PWM_CHANNEL_1, period_hertz, PWM_RESOLUTION);
-  ledcSetup(PWM_CHANNEL_2, period_hertz, PWM_RESOLUTION);
+  ledcSetup(PWM_CHANNEL_1, _pwm_freq, PWM_RESOLUTION);
+  ledcSetup(PWM_CHANNEL_2, _pwm_freq, PWM_RESOLUTION);
 
   /* Attach servos to channels */
-  ledcAttachPin(servo_pin_1, PWM_CHANNEL_1);
-  ledcAttachPin(servo_pin_2, PWM_CHANNEL_2);
+  ledcAttachPin(_servo_pin_1, PWM_CHANNEL_1);
+  ledcAttachPin(_servo_pin_2, PWM_CHANNEL_2);
 
   /* Put both servos at their middle positions */
   ledcWrite(PWM_CHANNEL_1, ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN);
   ledcWrite(PWM_CHANNEL_2, ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN);
 
-  servo_pos_1 = ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN;
-  servo_pos_2 = ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN;
+  current_servo_pos_1 = ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN;
+  current_servo_pos_2 = ((PWM_MAX - PWM_MIN) / 2) + PWM_MIN;
 
   Serial.println("Camera setup complete.");
 }
@@ -84,13 +90,15 @@ bool Camera::move(angleSet angles) {
   bool moved_1 = false;
   bool moved_2 = false;
 
-  if(abs(angle_1 - servo_pos_1) > 3) {
+  if(abs(angle_1 - current_servo_pos_1) > _angle_variation) {
     ledcWrite(PWM_CHANNEL_1, angleToPwm(angle_1));
+    current_servo_pos_1 = angle_1;
     moved_1 = true;
   }
 
-  if(abs(angle_2 - servo_pos_2) > 3) {
+  if(abs(angle_2 - current_servo_pos_2) > _angle_variation) {
     ledcWrite(PWM_CHANNEL_2, angleToPwm(angle_2));
+    current_servo_pos_2 = angle_2;
     moved_2 = true;
   }
 

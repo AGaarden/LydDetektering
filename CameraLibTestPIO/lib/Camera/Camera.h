@@ -23,7 +23,7 @@ typedef struct {
 class Camera{
   private:
     /* PWM properties */
-    static const uint8_t PWM_FREQ = 50;
+    static const uint8_t BASE_PWM_FREQ = 50;
     static const uint8_t PWM_CHANNEL_1 = 0; /* Zero indexed */
     static const uint8_t PWM_CHANNEL_2 = 1; /* Zero indexed */
     static const uint8_t PWM_RESOLUTION = 11;
@@ -34,19 +34,28 @@ class Camera{
     static const uint8_t PWM_MAP_EXTRA = 5; /* Arbitrary value for getting closer to 180 degrees when using map */
 
     /* Base servo pins */
-    static const uint8_t SERVO_PIN_1 = 19;
-    static const uint8_t SERVO_PIN_2 = 18;
+    static const uint8_t BASE_SERVO_PIN_1 = 19;
+    static const uint8_t BASE_SERVO_PIN_2 = 18;
 
     /* The current position of the camera gets saved to these variables */
-    uint8_t servo_pos_1;
-    uint8_t servo_pos_2;
+    uint8_t current_servo_pos_1;
+    uint8_t current_servo_pos_2;
+
+    /* Base variable for plusminus calculations */
+    static const uint8_t BASE_ANGLE_VARIATION = 3;
+
+    /* The variables that get set by constructor */
+    uint8_t _pwm_freq;
+    uint8_t _servo_pin_1;
+    uint8_t _servo_pin_2;
+    uint8_t _angle_variation;
 
     /* The functions */
     uint16_t angleToPwm(uint8_t angle);
     uint8_t pwmToAngle(uint16_t pwm);
   public:
     /* The functions */
-    Camera(uint8_t servo_pin_1 = SERVO_PIN_1, uint8_t servo_pin_2 = SERVO_PIN_2, uint16_t period_hertz = PWM_FREQ);
+    Camera(uint8_t servo_pin_1 = BASE_SERVO_PIN_1, uint8_t servo_pin_2 = BASE_SERVO_PIN_2, uint16_t period_hertz = BASE_PWM_FREQ, uint8_t angle_variation = BASE_ANGLE_VARIATION);
     bool move(angleSet angles);
     void testServos();
 };

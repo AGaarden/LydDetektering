@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <eventdetect.h>
 #include <direction.h>
+#include <Camera.h>
 #include <math.h>
 
 static float adc0buff[2048];
@@ -15,7 +16,11 @@ Camera camera;
 void setup() {
   Serial.begin(921600);
   i2s_init();
+  Camera camera();
 
+  camera.move(angles);
+  delay(1000);
+  camera.move(angles4);
   Serial.println("System started...");
 }
 
@@ -30,6 +35,9 @@ void loop() {
       shift0_3 = fft_timeshift(&adc0buff[0], &adc3buff[0]);
       shift0_6 = fft_timeshift(&adc0buff[0], &adc6buff[0]);
       shift0_7 = fft_timeshift(&adc0buff[0], &adc7buff[0]);
+
+      angleSet angles = direction(shift0_3, shift0_6, shift0_7);
+      camera.move(angles);
 
       // // Initiate sample shift calculation on the existing buffers.
       // shift0_3 = (float) (calc_sample_shift(&adc0buff[0], &adc3buff[0]))*0.00002;

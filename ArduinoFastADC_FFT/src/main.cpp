@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <eventdetect.h>
 #include <direction.h>
-#include <fft.h>
 #include <math.h>
 
 static float adc0buff[2048];
@@ -21,54 +20,16 @@ void setup() {
 }
 
 void loop() {
-  static fft_config_t *real_fft_plan0 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
-  static fft_config_t *real_fft_plan1 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
-  static fft_config_t *real_ifft_plan0 = fft_init(2048, FFT_REAL, FFT_BACKWARD, NULL, NULL);
-  static fft_config_t *real_ifft_plan1 = fft_init(2048, FFT_REAL, FFT_BACKWARD, NULL, NULL);
-  static fft_config_t *real_ifft_foldning = fft_init(2048, FFT_REAL, FFT_BACKWARD, NULL, NULL);
-  static float foldning[4096];
-
   while (1) {
 
     if (sample_checkamplitude(&adc0buff[0], &adc3buff[0], &adc6buff[0], &adc7buff[0])) {
       float shift0_3, shift0_6, shift0_7;
 
-      start_b = esp_timer_get_time();            
-      
-      real_fft_plan0->input = adc0buff;
-      real_fft_plan1->input = adc3buff;
-      fft_execute(real_fft_plan0);
-      fft_execute(real_fft_plan1);
+      start_b = esp_timer_get_time();          
 
-      for (int i = 3; i < 2048; i += 2) {
-          real_fft_plan0->output[i] = real_fft_plan0->output[i] * (-1);
-      }
-
-      for (int i = 0; i < 2048; i += 2) {
-          foldning[i] = (real_fft_plan0->output[i]*real_fft_plan1->output[i] - real_fft_plan0->output[i+1]*real_fft_plan1->output[i+1]);
-          foldning[i+1] = (real_fft_plan0->output[i]*real_fft_plan1->output[i+1] + real_fft_plan1->output[i]*real_fft_plan0->output[i+1]);
-
-          // printf("z1: %f +j %f\n", adc0buff[i], adc0buff[i+1]);
-          // printf("z2: %f +j %f\n", adc3buff[i], adc3buff[i+1]);
-          // printf("output: %f +j %f\n\n", foldning[i], foldning[i+1]);
-      }
-
-      real_ifft_plan0->input = real_fft_plan0->output;
-      real_ifft_plan1->input = real_fft_plan1->output;
-      real_ifft_foldning->input = foldning;
-      fft_execute(real_ifft_plan0);
-      fft_execute(real_ifft_plan1);
-      fft_execute(real_ifft_foldning);
-
-      int i, max_i = 0;
-      float max = real_ifft_foldning->output[0];
-      for (i = 2; i < 2048; i +=2) {
-          if (fabs(real_ifft_foldning->output[i]) > max) {
-              max = fabs(real_ifft_foldning->output[i]);
-              max_i = i;
-          }
-      }
-      max_i = max_i/2;
+      shift0_3 = fft_timeshift(&adc0buff[0], &adc3buff[0]);
+      shift0_6 = fft_timeshift(&adc0buff[0], &adc6buff[0]);
+      shift0_7 = fft_timeshift(&adc0buff[0], &adc7buff[0]);
 
       // // Initiate sample shift calculation on the existing buffers.
       // shift0_3 = (float) (calc_sample_shift(&adc0buff[0], &adc3buff[0]))*0.00002;
@@ -87,7 +48,7 @@ void loop() {
       //   printf("%i;%f;%f;%f;%f;%f;%f;%f\n", i, adc0buff[i], real_fft_plan0->output[i], real_ifft_plan0->output[i],   adc3buff[i], real_fft_plan1->output[i], real_ifft_plan1->output[i], real_ifft_foldning->output[i]);
       // }
 
-      printf("%i samples\t%i ms\n", max_i, (end_b-start_b)/1000);
+      printf("%f samples\t%i ms\n", shift0_3, (end_b-start_b)/1000);
     }
   }
 }

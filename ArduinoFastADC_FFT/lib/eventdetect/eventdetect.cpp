@@ -9,6 +9,8 @@
 #include <driver/periph_ctrl.h>
 #include <eventdetect.h>
 
+static float foldning[4096];
+
 void i2s_init()
 {
   i2s_config_t i2s_config = {
@@ -174,4 +176,57 @@ bool sample_checkamplitude(float *buff0, float *buff1, float *buff2, float *buff
         // if (ch_sel == 7) { buff3[cnt_7] = (buf[i] & 0x0fff) - DCOFFSET; cnt_7++; }
     }
     return eventFlag;
+}
+
+void real_fft(fft_config_t *fft_plan, float *input_arr) {
+    fft_plan->input = input_arr;
+    fft_execute(fft_plan);
+}
+
+void conj_array(fft_config_t *fft_plan) {
+    for (int i = 3; i < 2048; i += 2) {
+          fft_plan->output[i] = fft_plan->output[i] * (-1);
+      }
+}
+
+void convolve(fft_config_t *fft_plan_0, fft_config_t *fft_plan_1) {
+    for (int i = 0; i < 2048; i += 2) {
+          foldning[i] = (fft_plan_0->output[i]*fft_plan_1->output[i] - fft_plan_0->output[i+1]*fft_plan_1->output[i+1]);
+          foldning[i+1] = (fft_plan_0->output[i]*fft_plan_1->output[i+1] + fft_plan_1->output[i]*fft_plan_0->output[i+1]);
+      }
+}
+
+int argmax(fft_config_t *fft_plan, float *input_array) {
+    int i, max_i = 0;
+    float max = fft_plan->output[0];
+    for (i = 2; i < 2048; i +=2) {
+        if (fabs(fft_plan->output[i]) > max) {
+            max = fabs(fft_plan->output[i]);
+            max_i = i;
+        }
+    }
+
+    if (max_i / 2 > 512) {
+        return 1024 - max_i / 2;
+    } else {
+        return max_i/2;
+    }
+}
+
+float fft_timeshift(float *arr_0, float *arr_1) {
+    static fft_config_t *real_fft_plan0 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
+    static fft_config_t *real_fft_plan1 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
+    static fft_config_t *real_ifft_foldning = fft_init(2048, FFT_REAL, FFT_BACKWARD, NULL, NULL);
+    // 1. Calculate FFT of the two arrays
+    real_fft(real_fft_plan0, arr_0);
+    real_fft(real_fft_plan1, arr_1);
+    // 2. Conjugate the second array
+    conj_array(real_fft_plan1);
+    // 3. Convolute the two arrays
+    convolve(real_fft_plan0, real_fft_plan1);
+    // 4. Inverse FFT of the convolution
+    real_fft(real_ifft_foldning, foldning);
+    // 5. Find index of max value in convolution
+    return (float) argmax(real_ifft_foldning, real_ifft_foldning->output);
+    // 6. Find corresponding time of index
 }

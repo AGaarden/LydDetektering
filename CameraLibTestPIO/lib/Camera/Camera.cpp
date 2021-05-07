@@ -110,6 +110,11 @@ bool Camera::move(angleSet angles) {
   }
 }
 
+angleSet Camera::getCurrentPos() {
+  angleSet returnAngles = { returnAngles.xAngle = current_servo_pos_1, returnAngles.yAngle = current_servo_pos_2};
+  return returnAngles;
+}
+
 /*
    Name: testServos
    Output: None

@@ -16,8 +16,8 @@
 
 // make a structure with the necessary angles to point towards an occurrence
 typedef struct {
-  float xAngle;
-  float yAngle;
+  double xAngle;
+  double yAngle;
 } angleSet;
 
 class Camera{

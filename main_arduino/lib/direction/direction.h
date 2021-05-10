@@ -1,6 +1,6 @@
 #include <math.h>
 #include <Camera.h>
 
-float yy1(float x, float da, float l);
+double yy1(double x, double da, double l);
 
-angleSet direction(float ta, float tb, float tc); 
+angleSet direction(double ta, double tb, double tc); 

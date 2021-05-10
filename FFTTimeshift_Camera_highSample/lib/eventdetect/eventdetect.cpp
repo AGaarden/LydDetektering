@@ -9,12 +9,14 @@
 #include <driver/periph_ctrl.h>
 #include <eventdetect.h>
 
+static float foldning[4096];
+
 void i2s_init()
 {
   i2s_config_t i2s_config = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_ADC_BUILT_IN),
-    .sample_rate =  1000000,              // The format of the signal using ADC_BUILT_IN
-    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT, // is fixed at 12bit, stereo, MSB
+    .sample_rate =  1000000,                        // The format of the signal using ADC_BUILT_IN
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,   // is fixed at 12bit, stereo, MSB
     .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
     .communication_format = I2S_COMM_FORMAT_I2S,
     .intr_alloc_flags = 0,
@@ -50,7 +52,9 @@ void i2s_init()
   SET_PERI_REG_BITS(SYSCON_SARADC_CTRL_REG, SYSCON_SARADC_DATA_TO_I2S_V, 1, SYSCON_SARADC_DATA_TO_I2S_S);
 
   // I2S registers
-  DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_NUM, 200, I2S_CLKM_DIV_NUM_S);
+  //DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_NUM, 200, I2S_CLKM_DIV_NUM_S);
+  //DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_NUM, 100, I2S_CLKM_DIV_NUM_S);
+  DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_NUM, 50, I2S_CLKM_DIV_NUM_S);    // 200 ksps pr channel.
   DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_B, 0, I2S_CLKM_DIV_B_S);
   DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_A, 1, I2S_CLKM_DIV_A_S);
   DPORT_SET_PERI_REG_BITS(I2S0_SAMPLE_RATE_CONF_REG, I2S_RX_BCK_DIV_NUM, 2, I2S_RX_BCK_DIV_NUM_S);
@@ -58,6 +62,7 @@ void i2s_init()
   delay(1000);
 }
 
+// Correlation in time domain.
 void corr_s32(const int32_t *Signal, const int siglen, const int32_t *Pattern, const int patlen, int32_t *dest)
 {
     for (size_t n = 0; n < (siglen - patlen); n++) {
@@ -69,6 +74,7 @@ void corr_s32(const int32_t *Signal, const int siglen, const int32_t *Pattern, c
     }
 }
 
+// Deprecated (slow) method to calculate sample shift.
 // pBuf1 & pBuf2 should be arrays with the length of ADC_LEN.
 int16_t calc_sample_shift(int32_t *pBuf1, int32_t *pBuf2) {
     static int32_t corr_buffer[ADC_LEN];    // Variable to temporarily store correlated signal
@@ -97,7 +103,7 @@ int16_t calc_sample_shift(int32_t *pBuf1, int32_t *pBuf2) {
     return max_i; 
 }
 
-bool sample_checkamplitude(int32_t *buff0, int32_t *buff1, int32_t *buff2, int32_t *buff3)
+bool sample_checkamplitude(float *buff0, float *buff1, float *buff2, float *buff3)
 {
     static uint16_t buf[BUF_LEN*BUF_CNT];   // Buffer for i2s data.
     size_t bytes_read;                      // Size var to store # of bytes readed.
@@ -118,8 +124,8 @@ bool sample_checkamplitude(int32_t *buff0, int32_t *buff1, int32_t *buff2, int32
         ch_sel = buf[i] >> 12;                            // Shift 12 bits to the right to extract channel number.
         //printf("{TIMEPLOT|DATA|%i|T|%i }\n", ch_sel, buf[i] &0x0FFF);
         if (ch_sel == 0) { 
-            buff0[cnt_0] = (buf[i] & 0x0fff) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
-            Serial.println(buff0[cnt_0]);
+            buff0[cnt_0] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
+            //Serial.println(buff0[cnt_0]);
             // Check whether amplitude threshold is exceded
             if ((buff0[cnt_0] < upper_threshold) && (buff0[cnt_0] > lower_threshold)) { 
                 // Do nothing
@@ -131,47 +137,103 @@ bool sample_checkamplitude(int32_t *buff0, int32_t *buff1, int32_t *buff2, int32
         }
         
         if (ch_sel == 3) { 
-            buff1[cnt_3] = (buf[i] & 0x0fff) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
+            buff1[cnt_3] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
             //Serial.println(buff0[cnt_0]);
             // Check whether amplitude threshold is exceded
             if ((buff1[cnt_3] < upper_threshold) && (buff1[cnt_3] > lower_threshold)) { 
                 // Do nothing
             } else { 
-                eventFlag = true; 
+//                eventFlag = true; 
             } // Amplitude threshold exceeded, event detected. Also time performance measurement.
 
             cnt_3++; // Count this specific channel index up as we now have copied a sample.
         }
 
         if (ch_sel == 6) { 
-            buff2[cnt_0] = (buf[i] & 0x0fff) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
+            buff2[cnt_0] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
             //Serial.println(buff0[cnt_0]);
             // Check whether amplitude threshold is exceded
             if ((buff2[cnt_6] < upper_threshold) && (buff2[cnt_6] > lower_threshold)) { 
                 // Do nothing
             } else { 
-                eventFlag = true; 
+//                eventFlag = true; 
             } // Amplitude threshold exceeded, event detected. Also time performance measurement.
 
             cnt_6++; // Count this specific channel index up as we now have copied a sample.
         }
 
         if (ch_sel == 7) { 
-            buff3[cnt_7] = (buf[i] & 0x0fff) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
+            buff3[cnt_7] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
             //Serial.println(buff0[cnt_0]);
             // Check whether amplitude threshold is exceded
             if ((buff3[cnt_7] < upper_threshold) && (buff3[cnt_7] > lower_threshold)) { 
                 // Do nothing
             } else { 
-            //    eventFlag = true; 
+//                eventFlag = true; 
             } // Amplitude threshold exceeded, event detected. Also time performance measurement.
 
             cnt_7++; // Count this specific channel index up as we now have copied a sample.
         }
-
-        // if (ch_sel == 3) { buff1[cnt_3] = (buf[i] & 0x0fff) - DCOFFSET; cnt_3++; } // Same as above without lvl detection,
-        // if (ch_sel == 6) { buff2[cnt_6] = (buf[i] & 0x0fff) - DCOFFSET; cnt_6++; } // done for the rest of the ADCs.
-        // if (ch_sel == 7) { buff3[cnt_7] = (buf[i] & 0x0fff) - DCOFFSET; cnt_7++; }
     }
     return eventFlag;
+}
+
+void real_fft(fft_config_t *fft_plan, float *input_arr) {
+    fft_plan->input = input_arr;
+    fft_execute(fft_plan);
+}
+
+void conj_array(fft_config_t *fft_plan) {
+    for (int i = 3; i < 2048; i += 2) {
+          fft_plan->output[i] = fft_plan->output[i] * (-1);
+      }
+}
+
+void convolve(fft_config_t *fft_plan_0, fft_config_t *fft_plan_1) {
+    for (int i = 0; i < 2048; i += 2) {
+          foldning[i] = (fft_plan_0->output[i]*fft_plan_1->output[i] - fft_plan_0->output[i+1]*fft_plan_1->output[i+1]);
+          foldning[i+1] = (fft_plan_0->output[i]*fft_plan_1->output[i+1] + fft_plan_1->output[i]*fft_plan_0->output[i+1]);
+      }
+}
+
+int argmax(fft_config_t *fft_plan, float *input_array) {
+    int i, max_i = 0;
+    float max = fft_plan->output[0];
+    for (i = 2; i < 2048; i +=2) {
+        if (fabs(fft_plan->output[i]) > max) {
+            max = fabs(fft_plan->output[i]);
+            max_i = i;
+        }
+    }
+
+    if (max_i / 2 > 512) {
+        return -(1024 - max_i / 2);
+    } else {
+        return max_i/2;
+    }
+}
+
+double arg_to_sec(int arg, int fs) {
+    return arg * (1.0 / fs);
+}
+
+double fft_timeshift(float *arr_0, float *arr_1) {
+    static fft_config_t *real_fft_plan0 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
+    static fft_config_t *real_fft_plan1 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
+    static fft_config_t *real_ifft_foldning = fft_init(2048, FFT_REAL, FFT_BACKWARD, NULL, NULL);
+    // 1. Calculate FFT of the two arrays
+    real_fft(real_fft_plan0, arr_0);
+    real_fft(real_fft_plan1, arr_1);
+    // 2. Conjugate the second array
+    conj_array(real_fft_plan1);
+    // 3. Convolute the two arrays
+    convolve(real_fft_plan0, real_fft_plan1);
+    // 4. Inverse FFT of the convolution
+    real_fft(real_ifft_foldning, foldning);
+    // 5. Find index of max value in convolution
+    int max_arg = argmax(real_ifft_foldning, real_ifft_foldning->output);
+    // 6. Find corresponding time of index
+    //return arg_to_sec(max_arg, 50000);
+    //return arg_to_sec(max_arg, 100000);
+    return arg_to_sec(max_arg, 200000);
 }

@@ -57,6 +57,7 @@ class Camera{
     /* The functions */
     Camera(uint8_t servo_pin_1 = BASE_SERVO_PIN_1, uint8_t servo_pin_2 = BASE_SERVO_PIN_2, uint16_t period_hertz = BASE_PWM_FREQ, uint8_t angle_variation = BASE_ANGLE_VARIATION);
     bool move(angleSet angles);
+    bool stepMove(angleSet angles);
     angleSet getCurrentPos();
     void testServos();
 };

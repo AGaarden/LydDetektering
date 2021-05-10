@@ -110,6 +110,66 @@ bool Camera::move(angleSet angles) {
   }
 }
 
+bool Camera::stepMove(angleSet angles) {
+  uint8_t angle_1 = round(angles.xAngle);
+  uint8_t angle_2 = round(angles.yAngle);
+
+  bool moved_1 = false;
+  bool moved_2 = false;
+
+  uint8_t step_count = 10;
+  uint8_t delay_count = 5;
+
+  if(abs(angle_1 - current_servo_pos_1) > _angle_variation) {
+    uint8_t add_angle = abs(angle_1 - current_servo_pos_1) / step_count;
+
+    if(add_angle < 1.0) {
+      return move(angles);
+    }
+
+    if(angle_1 > current_servo_pos_1) {
+      for(int i = 0; i < step_count; i++) {
+        ledcWrite(PWM_CHANNEL_1, angleToPwm(current_servo_pos_1 + (add_angle * i)));
+        delay(delay_count);
+      }
+    }
+    if(current_servo_pos_1 > angle_1) {
+      for(int i = 0; i < step_count; i++) {
+        ledcWrite(PWM_CHANNEL_1, angleToPwm(current_servo_pos_1 - (add_angle * i)));
+        delay(delay_count);
+      }
+    }
+    current_servo_pos_1 = angle_1;
+    moved_1 = true;
+  }
+
+  if(abs(angle_2 - current_servo_pos_2) > _angle_variation) {
+    uint8_t add_angle = abs(angle_2 - current_servo_pos_2) / step_count;
+
+    if(angle_2 > current_servo_pos_2) {
+      for(int i = 0; i < step_count; i++) {
+        ledcWrite(PWM_CHANNEL_2, angleToPwm(current_servo_pos_2 + (add_angle * i)));
+        delay(delay_count);
+      }
+    }
+    if(current_servo_pos_2 > angle_2) {
+      for(int i = 0; i < step_count; i++) {
+        ledcWrite(PWM_CHANNEL_2, angleToPwm(current_servo_pos_1 - (add_angle * i)));
+        delay(delay_count);
+      }
+    }
+    current_servo_pos_2 = angle_2;
+    moved_2 = true;
+  }
+
+  if(!moved_1 && !moved_2) {
+    return false;
+  }
+  else {
+    return true;
+  }
+}
+
 angleSet Camera::getCurrentPos() {
   angleSet returnAngles = { returnAngles.xAngle = current_servo_pos_1, returnAngles.yAngle = current_servo_pos_2};
   return returnAngles;

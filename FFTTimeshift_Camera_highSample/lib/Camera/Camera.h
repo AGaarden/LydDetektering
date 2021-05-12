@@ -47,7 +47,7 @@ class Camera{
     uint8_t current_servo_pos_2;
 
     /* Base variable for plusminus calculations */
-    static const uint8_t BASE_ANGLE_VARIATION = 3;
+    static const uint8_t BASE_ANGLE_VARIATION = 5;
 
     /* The variables that get set by constructor */
     uint8_t _pwm_freq;

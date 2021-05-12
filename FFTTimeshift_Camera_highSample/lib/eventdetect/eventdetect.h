@@ -20,8 +20,8 @@
 #define I2S0_CLKM_CONF_REG 0x3FF4F0AC
 #define I2S0_SAMPLE_RATE_CONF_REG 0x3FF4F0B0
 
-const float upper_threshold = 0.12;
-const float lower_threshold = -0.12;
+const float upper_threshold = 0.08;
+const float lower_threshold = -0.08;
 
 typedef enum {
     REAL_FORWARD,

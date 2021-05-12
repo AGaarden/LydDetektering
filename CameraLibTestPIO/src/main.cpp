@@ -44,5 +44,4 @@ void loop() {
   delay(1500);
   camera.stepMove(angles7);
   delay(1500);
-  
 }

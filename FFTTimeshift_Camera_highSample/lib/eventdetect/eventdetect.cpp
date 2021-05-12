@@ -52,21 +52,33 @@ void i2s_init()
   SET_PERI_REG_BITS(SYSCON_SARADC_CTRL_REG, SYSCON_SARADC_DATA_TO_I2S_V, 1, SYSCON_SARADC_DATA_TO_I2S_S);
 
   // I2S registers
-  //DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_NUM, 200, I2S_CLKM_DIV_NUM_S);
+  DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_NUM, 200, I2S_CLKM_DIV_NUM_S);
   //DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_NUM, 100, I2S_CLKM_DIV_NUM_S);
-  DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_NUM, 50, I2S_CLKM_DIV_NUM_S);    // 200 ksps pr channel.
+  //DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_NUM, 50, I2S_CLKM_DIV_NUM_S);    // 200 ksps pr channel.
   DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_B, 0, I2S_CLKM_DIV_B_S);
   DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_A, 1, I2S_CLKM_DIV_A_S);
-  DPORT_SET_PERI_REG_BITS(I2S0_SAMPLE_RATE_CONF_REG, I2S_RX_BCK_DIV_NUM, 2, I2S_RX_BCK_DIV_NUM_S);
+  DPORT_SET_PERI_REG_BITS(I2S0_SAMPLE_RATE_CONF_REG, I2S_RX_BCK_DIV_NUM, 4, I2S_RX_BCK_DIV_NUM_S);
 
   delay(1000);
 }
 
-// Correlation in time domain.
-void corr_s32(const int32_t *Signal, const int siglen, const int32_t *Pattern, const int patlen, int32_t *dest)
+// Substraction in time domain.
+void subs_s32(const float *Signal, const int siglen, const float *Pattern, const int patlen, float *dest)
 {
     for (size_t n = 0; n < (siglen - patlen); n++) {
-        int32_t k_corr = 0;
+        float k_corr = 0;
+        for (size_t m = 0; m < patlen; m++) {
+            k_corr += Signal[n + m] - Pattern[m];
+        }
+        dest[n] = k_corr;
+    }
+}
+
+// Correlation in time domain.
+void corr_s32(const float *Signal, const int siglen, const float *Pattern, const int patlen, float *dest)
+{
+    for (size_t n = 0; n < (siglen - patlen); n++) {
+        float k_corr = 0;
         for (size_t m = 0; m < patlen; m++) {
             k_corr += Signal[n + m] * Pattern[m];
         }
@@ -76,10 +88,11 @@ void corr_s32(const int32_t *Signal, const int siglen, const int32_t *Pattern, c
 
 // Deprecated (slow) method to calculate sample shift.
 // pBuf1 & pBuf2 should be arrays with the length of ADC_LEN.
-int16_t calc_sample_shift(int32_t *pBuf1, int32_t *pBuf2) {
-    static int32_t corr_buffer[ADC_LEN];    // Variable to temporarily store correlated signal
+int16_t calc_sample_shift(float *pBuf1, float *pBuf2) {
+    static float corr_buffer[ADC_LEN];    // Variable to temporarily store correlated signal
 
-    corr_s32(&pBuf1[0], ADC_LEN, &pBuf2[63], ADC_LEN-128, &corr_buffer[0]);
+//    corr_s32(&pBuf1[0], ADC_LEN, &pBuf2[63], ADC_LEN-128, &corr_buffer[0]);
+    corr_s32(&pBuf1[0], ADC_LEN, &pBuf2[127], ADC_LEN-256, &corr_buffer[0]);
 
     //Debugging code to dump ADC data to serial terminal in CSV format.
 #if DEBUG == 1
@@ -92,11 +105,11 @@ int16_t calc_sample_shift(int32_t *pBuf1, int32_t *pBuf2) {
 
     // Find the shift based on the correlated signal
     int i, max_i = 0;
-    int32_t max = corr_buffer[0];
+    float max = corr_buffer[0];
     for (i = 0; i < 128; ++i) {
         if (corr_buffer[i] > max) {
             max = corr_buffer[i];
-            max_i = i - 62;                  // Remember offset since we start at indice 63
+            max_i = i - 63;                  // Remember offset since we start at indice 63
         }
     }
     // Return the sample shift.
@@ -124,7 +137,7 @@ bool sample_checkamplitude(float *buff0, float *buff1, float *buff2, float *buff
         ch_sel = buf[i] >> 12;                            // Shift 12 bits to the right to extract channel number.
         //printf("{TIMEPLOT|DATA|%i|T|%i }\n", ch_sel, buf[i] &0x0FFF);
         if (ch_sel == 0) { 
-            buff0[cnt_0] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
+            buff0[cnt_0] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET0;  // Bitwise AND to extract the first 12 bits containing ADC data.
             //Serial.println(buff0[cnt_0]);
             // Check whether amplitude threshold is exceded
             if ((buff0[cnt_0] < upper_threshold) && (buff0[cnt_0] > lower_threshold)) { 
@@ -137,39 +150,39 @@ bool sample_checkamplitude(float *buff0, float *buff1, float *buff2, float *buff
         }
         
         if (ch_sel == 3) { 
-            buff1[cnt_3] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
+            buff1[cnt_3] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET1;  // Bitwise AND to extract the first 12 bits containing ADC data.
             //Serial.println(buff0[cnt_0]);
             // Check whether amplitude threshold is exceded
             if ((buff1[cnt_3] < upper_threshold) && (buff1[cnt_3] > lower_threshold)) { 
                 // Do nothing
             } else { 
-//                eventFlag = true; 
+                eventFlag = true; 
             } // Amplitude threshold exceeded, event detected. Also time performance measurement.
 
             cnt_3++; // Count this specific channel index up as we now have copied a sample.
         }
 
         if (ch_sel == 6) { 
-            buff2[cnt_0] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
+            buff2[cnt_6] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET2;  // Bitwise AND to extract the first 12 bits containing ADC data.
             //Serial.println(buff0[cnt_0]);
             // Check whether amplitude threshold is exceded
             if ((buff2[cnt_6] < upper_threshold) && (buff2[cnt_6] > lower_threshold)) { 
                 // Do nothing
             } else { 
-//                eventFlag = true; 
+                eventFlag = true; 
             } // Amplitude threshold exceeded, event detected. Also time performance measurement.
 
             cnt_6++; // Count this specific channel index up as we now have copied a sample.
         }
 
         if (ch_sel == 7) { 
-            buff3[cnt_7] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET;  // Bitwise AND to extract the first 12 bits containing ADC data.
+            buff3[cnt_7] = (float)((buf[i] & 0x0fff)*0.0008) - DCOFFSET3;  // Bitwise AND to extract the first 12 bits containing ADC data.
             //Serial.println(buff0[cnt_0]);
             // Check whether amplitude threshold is exceded
             if ((buff3[cnt_7] < upper_threshold) && (buff3[cnt_7] > lower_threshold)) { 
                 // Do nothing
             } else { 
-//                eventFlag = true; 
+                eventFlag = true; 
             } // Amplitude threshold exceeded, event detected. Also time performance measurement.
 
             cnt_7++; // Count this specific channel index up as we now have copied a sample.
@@ -201,16 +214,22 @@ int argmax(fft_config_t *fft_plan, float *input_array) {
     float max = fft_plan->output[0];
     for (i = 2; i < 2048; i +=2) {
         if (fabs(fft_plan->output[i]) > max) {
+        //if (fft_plan->output[i] > max) {
             max = fabs(fft_plan->output[i]);
             max_i = i;
         }
     }
-
-    if (max_i / 2 > 512) {
-        return -(1024 - max_i / 2);
+    if (max_i > 1023) {
+        return -(2048 - max_i);
     } else {
-        return max_i/2;
+        return max_i;
     }
+
+    // if (max_i / 2 > 512) {
+    //     return -(1024 - max_i / 2);
+    // } else {
+    //     return max_i/2;
+    // }
 }
 
 double arg_to_sec(int arg, int fs) {
@@ -233,7 +252,7 @@ double fft_timeshift(float *arr_0, float *arr_1) {
     // 5. Find index of max value in convolution
     int max_arg = argmax(real_ifft_foldning, real_ifft_foldning->output);
     // 6. Find corresponding time of index
-    //return arg_to_sec(max_arg, 50000);
+    return arg_to_sec(max_arg, 50000);
     //return arg_to_sec(max_arg, 100000);
-    return arg_to_sec(max_arg, 200000);
+    //return arg_to_sec(max_arg, 200000);
 }

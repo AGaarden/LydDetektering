@@ -14,13 +14,13 @@ Point direction(double ta, double tb, double tc){
     double da = c*ta;
     double db = c*tb;
     double dc = c*tc;
-    double l = 0.15;
+    double l = 0.135;
     double x;
     double y;
     double z;
     double xOffset = 0;
-    double yOffset = 0;
-    double zOffset = 0;
+    double yOffset = 0.10;
+    double zOffset = 0.83;
     double kDist;
     double dist;
     double theta;
@@ -30,14 +30,21 @@ Point direction(double ta, double tb, double tc){
     if (abs(ta) > max_delay) {
         // Return no point
         return Point{NAN, NAN, NAN};
-    }
-    else if ((da == db) || ((abs(da - db)) < 1e-6)) {
+    // } else if ((da < 0) && (db > 0)) {
+    //     x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) + sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+    // } else if ((da > 0) && (db < 0)) {
+    //     x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) - sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+    // } else {
+    //     x = 0;
+    // }
+    } else if ((da == db) || ((abs(da - db)) < 1e-6)) {
         x = 0;
-    } else if (da*db < 0){
+    } else if (da*db < 0) {
         x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) + sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
     } else {
         x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) - sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
     }
+
 
     dist = sqrt(pow(yy1(x, da, l),2)+pow(x,2));
 
@@ -82,8 +89,8 @@ angleSet direction_angle(double ta, double tb, double tc){
     double y;
     double z;
     double xOffset = 0;
-    double yOffset = 0;
-    double zOffset = 0;
+    double yOffset = 0.10;
+    double zOffset = 0.83;
     double kDist;
     double dist;
     double theta;
@@ -93,13 +100,28 @@ angleSet direction_angle(double ta, double tb, double tc){
     if (abs(ta) > max_delay) {
         // Return no angles
         return angleSet{NAN, NAN};
-    }
-    else if ((da == db) || ((abs(da - db)) < 1e-6)) {
+    // } else if ((da < 0) && (db > 0)) {
+    //     x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) + sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+    // } else if ((da > 0) && (db < 0)) {
+    //     x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) - sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+    // } else {
+    //     x = 0;
+    // }
+    } else if ((da == db) || ((abs(da - db)) < 1e-6)) {
         x = 0;
-    } else if (da*db < 0){
-        x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) + sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+    } else if (da*db < 0) {
+        x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) + 
+            sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+        // if (da > db) {
+        //     x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) + 
+        //     sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+        // } else {
+        //     x = -((pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) + 
+        //     sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))));
+        // }
     } else {
-        x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) - sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+        x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) - 
+        sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
     }
 
     dist = sqrt(pow(yy1(x, da, l),2)+pow(x,2));
@@ -128,6 +150,7 @@ angleSet direction_angle(double ta, double tb, double tc){
     kDist = sqrt(pow(x-xOffset,2)+pow(y-yOffset,2)+pow((z-zOffset),2));
 
     temp.xAngle = acos((x - xOffset)/sqrt(pow(x - xOffset,2)+pow(y - yOffset,2)))*(180/M_PI);
+
     if (z < 0) {
         temp.yAngle = -acos(sqrt(pow(x - xOffset ,2)+pow(y - yOffset,2))/kDist)*(180/M_PI)+90;
     } else {
@@ -138,3 +161,43 @@ angleSet direction_angle(double ta, double tb, double tc){
     //printf("%f\t %f\t %f\n", x, y, z);
     return temp;
 }
+
+
+// Old method without sanity checks:
+// angleSet direction_angle(double ta, double tb, double tc){
+//     angleSet temp;
+//     int c = 343;
+//     double da = c*ta;
+//     double db = c*tb;
+//     double dc = c*tc;
+//     double l = 0.15;
+//     double x;
+//     double y;
+//     double z;
+//     double xOffset = 0;
+//     double yOffset = 0;
+//     double zOffset = 0.20;
+//     double kDist;
+//     double dist;
+//     double theta;
+//     if (da*db < 0){
+//         x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) + sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+//     } else {
+//         x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) - sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
+//     }
+    
+//     dist = sqrt(pow(yy1(x, da, l),2)+pow(x,2));
+
+//     z = (pow(l,2) - pow(dc,2) - 2*dc*dist) / (2*l);
+
+//     theta = asin(z/yy1(x,da,l));
+
+//     y = yy1(x,da,l)*cos(theta);
+
+//     kDist = sqrt(pow(x+xOffset,2)+pow(y+yOffset,2)+pow((z+zOffset),2));
+
+//     temp.xAngle = acos(x/sqrt(pow(x,2)+pow(y,2)))*(180/M_PI);
+//     temp.yAngle = acos(sqrt(pow(x,2)+pow(y,2))/kDist)*(180/M_PI)+90;
+//     //test
+//     return temp;
+// }

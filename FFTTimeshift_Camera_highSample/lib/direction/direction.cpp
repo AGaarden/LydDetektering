@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <Camera.h>
 
-// double yy1(double x, double da, double l){
+// double yk(double x, double da, double l){
 //     return (1/2.0)*sqrt( ( (4*pow(x-(0+l/2),2)-pow(da,2))*(pow(l,2)-pow(da,2)) ) / (pow(da,2.0)) );
 // }
 
@@ -18,7 +18,7 @@ Point direction(double ta, double tb, double tc){
     double x;
     double y;
     double z;
-    double yy1;
+    double yk;
     double dist;
     double theta;
     double max_delay = l / c * 0.995;
@@ -42,20 +42,20 @@ Point direction(double ta, double tb, double tc){
         x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) - sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
     }
 
-    yy1 = (1/2.0)*sqrt( ( (4*pow(x-(0+l/2),2)-pow(da,2))*(pow(l,2)-pow(da,2)) ) / (pow(da,2.0)) );
+    yk = (1/2.0)*sqrt( ( (4*pow(x-(0+l/2),2)-pow(da,2))*(pow(l,2)-pow(da,2)) ) / (pow(da,2.0)) );
 
-    //dist = sqrt(pow(yy1(x, da, l),2)+pow(x,2));
-    dist = sqrt(pow(yy1,2)+pow(x,2));
+    //dist = sqrt(pow(yk(x, da, l),2)+pow(x,2));
+    dist = sqrt(pow(yk,2)+pow(x,2));
 
     // printf("pow(l, 2): %f\n", pow(l, 2));
     // printf("pow(dc, 2): %f\n", pow(dc, 2));
     // printf("2*dc*dist: %f\n", 2*dc*dist);
     z = (pow(l,2) - pow(dc,2) - 2*dc*dist) / (2*l);
 
-    //printf("yy1(x,da,l): %f\n", yy1(x,da,l));
-    //printf("z/yy1(x,da,l): %f\n", z/yy1(x,da,l));
-    //theta_check = z/yy1(x,da,l);
-    theta_check = z/yy1;
+    //printf("yk(x,da,l): %f\n", yk(x,da,l));
+    //printf("z/yk(x,da,l): %f\n", z/yk(x,da,l));
+    //theta_check = z/yk(x,da,l);
+    theta_check = z/yk;
 
     if (theta_check > 1) {
         theta_check = 1;
@@ -64,12 +64,12 @@ Point direction(double ta, double tb, double tc){
     }
     theta = asin(theta_check);
     if (isnan(theta)) {
-        //printf("Theta is nan: %f\n", z/yy1(x,da,l));
-        printf("Theta is nan: %f\n", z/yy1);
+        //printf("Theta is nan: %f\n", z/yk(x,da,l));
+        printf("Theta is nan: %f\n", z/yk);
     }
     //printf("theta: %f\n", theta);
-    //y = yy1(x,da,l)*cos(theta);
-    y = yy1*cos(theta);
+    //y = yk(x,da,l)*cos(theta);
+    y = yk*cos(theta);
 
     //test
     //printf("%f\t %f\t %f\n", x, y, z);
@@ -131,13 +131,13 @@ angleSet direction_angle(double ta, double tb, double tc){
 //         x = (pow(l,3)*pow(da,2) + pow(l,3)*pow(db,2) - 2*l*pow(da,2)*pow(db,2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2))) - sqrt(pow(da,2)*pow(db,2)*pow(l,2)*pow(-2*pow(l,2) + pow(da,2) + pow(db,2.0),2))/(2*pow(l,2)*(-pow(da,2) + pow(db,2)));
 //     }
     
-//     dist = sqrt(pow(yy1(x, da, l),2)+pow(x,2));
+//     dist = sqrt(pow(yk(x, da, l),2)+pow(x,2));
 
 //     z = (pow(l,2) - pow(dc,2) - 2*dc*dist) / (2*l);
 
-//     theta = asin(z/yy1(x,da,l));
+//     theta = asin(z/yk(x,da,l));
 
-//     y = yy1(x,da,l)*cos(theta);
+//     y = yk(x,da,l)*cos(theta);
 
 //     kDist = sqrt(pow(x+xOffset,2)+pow(y+yOffset,2)+pow((z+zOffset),2));
 

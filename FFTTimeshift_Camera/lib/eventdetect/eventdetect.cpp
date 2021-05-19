@@ -211,11 +211,11 @@ int argmax(fft_config_t *fft_plan, float *input_array) {
     }
 }
 
-float arg_to_sec(int arg, int fs) {
+double arg_to_sec(int arg, int fs) {
     return arg * (1.0 / fs);
 }
 
-float fft_timeshift(float *arr_0, float *arr_1) {
+double fft_timeshift(float *arr_0, float *arr_1) {
     static fft_config_t *real_fft_plan0 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
     static fft_config_t *real_fft_plan1 = fft_init(2048, FFT_REAL, FFT_FORWARD, NULL, NULL);
     static fft_config_t *real_ifft_foldning = fft_init(2048, FFT_REAL, FFT_BACKWARD, NULL, NULL);

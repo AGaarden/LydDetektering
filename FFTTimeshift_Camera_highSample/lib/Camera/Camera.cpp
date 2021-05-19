@@ -55,6 +55,9 @@ Camera::Camera(uint8_t servo_pin_1, uint8_t servo_pin_2, uint16_t period_hertz, 
  *  The PWM_MAP_EXTRA variable is added arbitrarily to make sure map reaches 180 degrees
  */
 uint16_t Camera::angleToPwm(uint8_t angle) {
+  uint8_t angle_to_pwm = map(angle, 0, 180, PWM_MIN, PWM_MAX + PWM_MAP_EXTRA);
+  
+  //return map(angle_to_pwm, 0, 180, 180, 0);
   return map(angle, 0, 180, PWM_MIN, PWM_MAX + PWM_MAP_EXTRA);
 }
 

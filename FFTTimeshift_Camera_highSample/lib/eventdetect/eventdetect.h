@@ -9,7 +9,10 @@
 #include <driver/periph_ctrl.h>
 #include <fft.h>
 
-#define DCOFFSET 1.4
+#define DCOFFSET0 1.37
+#define DCOFFSET1 1.33
+#define DCOFFSET2 1.33
+#define DCOFFSET3 1.33
 #define BUF_CNT 8
 #define BUF_LEN 1024
 #define ADC_LEN ((1024*8)/4)
@@ -17,8 +20,8 @@
 #define I2S0_CLKM_CONF_REG 0x3FF4F0AC
 #define I2S0_SAMPLE_RATE_CONF_REG 0x3FF4F0B0
 
-const float upper_threshold = 0.1;
-const float lower_threshold = -0.1;
+const float upper_threshold = 0.08;
+const float lower_threshold = -0.08;
 
 typedef enum {
     REAL_FORWARD,
@@ -27,8 +30,8 @@ typedef enum {
 
 void i2s_init();
 bool sample_checkamplitude(float *buff0, float *buff1, float *buff2, float *buff3);
-int16_t calc_sample_shift(int32_t *pBuf1, int32_t *pBuf2);
-void corr_s32(const int32_t *Signal, const int siglen, const int32_t *Pattern, const int patlen, int32_t *dest);
+int16_t calc_sample_shift(float *pBuf1, float *pBuf2);
+void corr_s32(const float *Signal, const int siglen, const float *Pattern, const int patlen, float *dest);
 void real_fft(fft_config_t *fft_plan, float *input_arr);
 void conj_array(fft_config_t *fft_plan);
 void convolve(fft_config_t *fft_plan_0, fft_config_t *fft_plan_1);

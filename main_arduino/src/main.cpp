@@ -20,21 +20,21 @@ void setup() {
 
 void loop() {
   if (sample_checkamplitude(&adc0buff[0], &adc3buff[0], &adc6buff[0], &adc7buff[0])) {
-    float shift0_3, shift0_6, shift0_7;
+    double shift0_3, shift0_6, shift0_7;
 
     start_b = esp_timer_get_time();            
     // Initiate sample shift calculation on the existing buffers.
-    shift0_3 = (float) (calc_sample_shift(&adc0buff[0], &adc3buff[0]))*0.00002;
-    shift0_6 = (float) (calc_sample_shift(&adc0buff[0], &adc6buff[0]))*0.00002;
-    shift0_7 = (float) (calc_sample_shift(&adc0buff[0], &adc7buff[0]))*0.00002;
+    shift0_3 = (double) (calc_sample_shift(&adc0buff[0], &adc3buff[0]))*0.00002;
+    shift0_6 = (double) (calc_sample_shift(&adc0buff[0], &adc6buff[0]))*0.00002;
+    shift0_7 = (double) (calc_sample_shift(&adc0buff[0], &adc7buff[0]))*0.00002;
     
     angle = direction(shift0_3, shift0_6, shift0_7);
 
     camera.move(angle);
     end_b = esp_timer_get_time();            
-    //printf("Angle \txy: %f \tyz: %f\n", angle.xAngle, angle.yAngle);
-    //printf("[Detected] 0-3: %.6f s \t 0-6: %.6f s \t 0-7: %.6f s \n", shift0_3, shift0_6, shift0_7);
-    //printf("Performance timer: %i ms\n", (end_b-start_b)/1000);
-    printf("%i ms\n", (end_b-start_b)/1000);
+    // printf("Angle \txy: %f \tyz: %f\n", angle.xAngle, angle.yAngle);
+    // printf("[Detected] 0-3: %.6f s \t 0-6: %.6f s \t 0-7: %.6f s \n", shift0_3, shift0_6, shift0_7);
+    // printf("Performance timer: %i ms\n", (end_b-start_b)/1000);
+    printf("[Detected] xy: %f \tyz: %f\t 0-3: %.6f s \t 0-6: %.6f s \t 0-7: %.6f s \t %i ms\n", angle.xAngle, angle.yAngle, shift0_3, shift0_6, shift0_7, (end_b-start_b)/1000);
   }
 }

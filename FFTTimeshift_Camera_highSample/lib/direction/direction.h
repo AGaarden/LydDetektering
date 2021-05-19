@@ -7,6 +7,6 @@ typedef struct {
     double z;
 } Point;
 
-double yy1(double x, double da, double l);
+//double yy1(double x, double da, double l);
 Point direction(double ta, double tb, double tc); 
 angleSet direction_angle(double ta, double tb, double tc); 

@@ -8,7 +8,7 @@
 #include <soc/dport_access.h>
 #include <driver/periph_ctrl.h>
 
-#define DCOFFSET 1900
+#define DCOFFSET 1700
 #define BUF_CNT 8
 #define BUF_LEN 1024
 #define ADC_LEN ((1024*8)/4)
@@ -16,8 +16,8 @@
 #define I2S0_CLKM_CONF_REG 0x3FF4F0AC
 #define I2S0_SAMPLE_RATE_CONF_REG 0x3FF4F0B0
 
-const int32_t upper_threshold = 300;
-const int32_t lower_threshold = -300;
+const int32_t upper_threshold = 500;
+const int32_t lower_threshold = -500;
 
 void i2s_init();
 bool sample_checkamplitude(int32_t *buff0, int32_t *buff1, int32_t *buff2, int32_t *buff3);

@@ -10,7 +10,8 @@ static float adc6buff[2048];
 static float adc7buff[2048];
 
 unsigned int start_b, end_b;        // Variable for execution measurement
-angleSet angle;
+angleSet angles;
+Point debugPoints;
 Camera camera;
 
 void setup() {
@@ -24,7 +25,7 @@ void loop() {
   while (1) {
 
     if (sample_checkamplitude(&adc0buff[0], &adc3buff[0], &adc6buff[0], &adc7buff[0])) {
-      float shift0_3, shift0_6, shift0_7;
+      double shift0_3, shift0_6, shift0_7;
 
       start_b = esp_timer_get_time();          
 
@@ -32,7 +33,8 @@ void loop() {
       shift0_6 = fft_timeshift(&adc0buff[0], &adc6buff[0]);
       shift0_7 = fft_timeshift(&adc0buff[0], &adc7buff[0]);
 
-      angleSet angles = direction(shift0_3, shift0_6, shift0_7);
+      angles = direction_angle(shift0_3, shift0_6, shift0_7);
+      debugPoints = direction(shift0_3, shift0_6, shift0_7);
       camera.move(angles);
 
       // // Initiate sample shift calculation on the existing buffers.
@@ -51,7 +53,8 @@ void loop() {
       //   //printf("%i;%f;%f;%f\n", i, adc0buff[i], real_fft_plan0->output[i], real_ifft_plan0->output[i]);
       //   printf("%i;%f;%f;%f;%f;%f;%f;%f\n", i, adc0buff[i], real_fft_plan0->output[i], real_ifft_plan0->output[i],   adc3buff[i], real_fft_plan1->output[i], real_ifft_plan1->output[i], real_ifft_foldning->output[i]);
       // }
-      printf("%f ms\t %f ms\t %f ms\t %f.2°\t %f.2°\n", shift0_3, shift0_6, shift0_7, angles.X, angles.Y);
+      //printf("%f ms\t %f ms\t %f ms\t %f.2°\t %f.2°\n", shift0_3, shift0_6, shift0_7, angles.X, angles.Y);
+      printf("%i ms \t xy: %.1f \t zy: %.1f \t a: %.6f \t b: %.6f \t c: %.6f \t x: %.2f \t y: %.2f \t z: %.2f \n", (end_b-start_b)/1000, angles.xAngle, angles.yAngle, shift0_3, shift0_6, shift0_7, debugPoints.x, debugPoints.y, debugPoints.z);
     }
   }
 }

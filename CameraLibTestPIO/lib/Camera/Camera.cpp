@@ -110,6 +110,16 @@ bool Camera::move(angleSet angles) {
   }
 }
 
+/*
+   Name: stepMove
+   Input: angleSet
+   Output: A boolean value representing whether or not the camera has moved anything
+   Remarks:
+   Moves the camera into the position given
+   Only moves if the new position is +-3 degrees in difference
+   
+   Has no inherent error correction
+*/
 bool Camera::stepMove(angleSet angles) {
   uint8_t angle_1 = round(angles.xAngle);
   uint8_t angle_2 = round(angles.yAngle);

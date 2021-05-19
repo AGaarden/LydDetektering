@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "adc_channel.h": "c"
+        "adc_channel.h": "c",
+        "*.tcc": "cpp",
+        "string": "cpp",
+        "istream": "cpp"
     }
 }

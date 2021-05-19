@@ -9,6 +9,8 @@
 #include <driver/periph_ctrl.h>
 #include <fft.h>
 
+float foldning[4096];
+
 #define DCOFFSET 1.3
 #define BUF_CNT 8
 #define BUF_LEN 1024

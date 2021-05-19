@@ -9,8 +9,6 @@
 #include <driver/periph_ctrl.h>
 #include <eventdetect.h>
 
-static float foldning[4096];
-
 void i2s_init()
 {
   i2s_config_t i2s_config = {

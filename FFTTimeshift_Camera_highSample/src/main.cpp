@@ -8,10 +8,10 @@
 
 #define exportSamples 0
 
-static float adc0buff[2048];
-static float adc3buff[2048];
-static float adc6buff[2048];
-static float adc7buff[2048];
+static float adc0buff[4096];
+static float adc3buff[4096];
+static float adc6buff[4096];
+static float adc7buff[4096];
 
 unsigned int start_b, end_b;        // Variable for execution measurement
 angleSet angles;

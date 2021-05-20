@@ -9,8 +9,7 @@
 #include <driver/periph_ctrl.h>
 #include <eventdetect.h>
 
-float foldning[4096];
-
+float foldning[FFTSIZE];
 
 
 void i2s_init()
@@ -60,6 +59,7 @@ void i2s_init()
   DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_B, 0, I2S_CLKM_DIV_B_S);
   DPORT_SET_PERI_REG_BITS(I2S0_CLKM_CONF_REG, I2S_CLKM_DIV_A, 1, I2S_CLKM_DIV_A_S);
   DPORT_SET_PERI_REG_BITS(I2S0_SAMPLE_RATE_CONF_REG, I2S_RX_BCK_DIV_NUM, 4, I2S_RX_BCK_DIV_NUM_S);
+  //DPORT_SET_PERI_REG_BITS(I2S0_SAMPLE_RATE_CONF_REG, I2S_RX_BCK_DIV_NUM, 2, I2S_RX_BCK_DIV_NUM_S);
 
   delay(1000);
 }
@@ -128,7 +128,7 @@ bool sample_checkamplitude(float *buff0, float *buff1, float *buff2, float *buff
     // Read I2S 0 data  and store in 'buf' variabel. Give error message if failed.
     i2s_read(I2S_NUM_0, buf, BUF_LEN * BUF_CNT * sizeof(uint16_t), &bytes_read, portMAX_DELAY);
 
-    int cnt_0 = 0, cnt_3 = 0, cnt_6 = 0, cnt_7 = 0;
+    int cnt_0 = FFTSIZE/2, cnt_3 = 0, cnt_6 = 0, cnt_7 = 0;
 
     // Extract the 4 ADC channels from the I2S buffer and store in an array for each.
     // This is necessary since we do not know precisely what time empty the buffer and
@@ -199,7 +199,7 @@ void real_fft(fft_config_t *fft_plan, float *input_arr) {
 }
 
 void conj_array(fft_config_t *fft_plan) {
-    for (int i = 3; i < 4096; i += 2) {
+    for (int i = 3; i < FFTSIZE; i += 2) {
           fft_plan->output[i] = fft_plan->output[i] * (-1);
       }
 }
@@ -207,23 +207,23 @@ void conj_array(fft_config_t *fft_plan) {
 void convolve(fft_config_t *fft_plan_0, fft_config_t *fft_plan_1) {
     foldning[0] = fft_plan_0->output[0] * fft_plan_1->output[0];
     foldning[1] = fft_plan_0->output[1] * fft_plan_1->output[1];
-    for (int i = 2; i < 4096; i += 2) {
+    for (int i = 2; i < FFTSIZE; i += 2) {
           foldning[i] = (fft_plan_0->output[i]*fft_plan_1->output[i] - fft_plan_0->output[i+1]*fft_plan_1->output[i+1]);
           foldning[i+1] = (fft_plan_0->output[i]*fft_plan_1->output[i+1] + fft_plan_1->output[i]*fft_plan_0->output[i+1]);
       }
 }
 
 int argmax(fft_config_t *fft_plan) {
-    int i, max_i = 1023;
-    float max = fft_plan->output[1023];
-    for (i = 1024; i < 3071; i +=1) {
+    int i, max_i = (FFTSIZE/4)-1;
+    float max = fft_plan->output[max_i];
+    for (i = FFTSIZE/4; i < (((FFTSIZE/4)*3)-1); i +=1) {
         if (fft_plan->output[i] > max) {
             max = fft_plan->output[i];
             max_i = i;
         }
     }
 
-    return max_i - 2048;
+    return max_i - FFTSIZE/2;
 }
 
 float arg_to_sec(int arg, int fs) {
@@ -231,9 +231,9 @@ float arg_to_sec(int arg, int fs) {
 }
 
 float fft_timeshift(float *arr_0, float *arr_1) {
-    static fft_config_t *real_fft_plan0 = fft_init(4096, FFT_REAL, FFT_FORWARD, NULL, NULL);
-    static fft_config_t *real_fft_plan1 = fft_init(4096, FFT_REAL, FFT_FORWARD, NULL, NULL);
-    static fft_config_t *real_ifft_foldning = fft_init(4096, FFT_REAL, FFT_BACKWARD, NULL, NULL);
+    static fft_config_t *real_fft_plan0 = fft_init(FFTSIZE, FFT_REAL, FFT_FORWARD, NULL, NULL);
+    static fft_config_t *real_fft_plan1 = fft_init(FFTSIZE, FFT_REAL, FFT_FORWARD, NULL, NULL);
+    static fft_config_t *real_ifft_foldning = fft_init(FFTSIZE, FFT_REAL, FFT_BACKWARD, NULL, NULL);
     // 1. Calculate FFT of the two arrays
     real_fft(real_fft_plan0, arr_0);
     real_fft(real_fft_plan1, arr_1);
@@ -243,12 +243,12 @@ float fft_timeshift(float *arr_0, float *arr_1) {
     convolve(real_fft_plan0, real_fft_plan1);
     // 4. Inverse FFT of the convolution
     real_fft(real_ifft_foldning, foldning);
-    for (int i = 0; i < 4096; i++) {
-        printf("%f\n", real_ifft_foldning->output[i]);
-    }
+    // for (int i = 0; i < FFTSIZE; i++) {
+    //     printf("%f\n", real_ifft_foldning->output[i]);
+    // }
     // 5. Find index of max value in convolution
     int max_arg = argmax(real_ifft_foldning);
     // 6. Find corresponding time of index
-    //return arg_to_sec(max_arg, 50000);
-    return (float) max_arg;
+    return arg_to_sec(max_arg, 50000);
+    //return arg_to_sec(max_arg, 100000);
 }

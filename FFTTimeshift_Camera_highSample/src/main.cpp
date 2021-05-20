@@ -8,10 +8,10 @@
 
 #define exportSamples 0
 
-static float adc0buff[4096];
-static float adc3buff[4096];
-static float adc6buff[4096];
-static float adc7buff[4096];
+static float adc0buff[ADC_LEN*2] = {0};
+static float adc3buff[ADC_LEN*2] = {0};
+static float adc6buff[ADC_LEN*2] = {0};
+static float adc7buff[ADC_LEN*2] = {0};
 
 unsigned int start_b, end_b;        // Variable for execution measurement
 angleSet angles;
@@ -51,21 +51,34 @@ void loop() {
 
       start_b = esp_timer_get_time();          
 
-      // FFT based timeshift calculation.
-      shift0_3 = fft_timeshift(&adc0buff[0], &adc3buff[0]) * (-1);
-      shift0_6 = fft_timeshift(&adc0buff[0], &adc6buff[0]) * (-1);
-      shift0_7 = fft_timeshift(&adc0buff[0], &adc7buff[0]) * (-1);
+    //   // FFT based timeshift calculation.
+      shift0_3 = fft_timeshift(&adc0buff[0], &adc3buff[0]) *-1;
+      shift0_6 = fft_timeshift(&adc0buff[0], &adc6buff[0]) *-1;
+      shift0_7 = fft_timeshift(&adc0buff[0], &adc7buff[0]) *-1;
+
+    // FFT based timeshift calculation.
+    //   shift0_3 = fft_timeshift(&adc0buff[0], &adc3buff[0]);
+    //   shift0_6 = fft_timeshift(&adc0buff[0], &adc6buff[0]);
+    //   shift0_7 = fft_timeshift(&adc0buff[0], &adc7buff[0]);
 
       // // Old sample shift calculation method.
       // shift0_3 = calc_sample_shift(&adc0buff[0], &adc3buff[0]) * 1.0/50000;
       // shift0_6 = calc_sample_shift(&adc0buff[0], &adc6buff[0]) * 1.0/50000;
       // shift0_7 = calc_sample_shift(&adc0buff[0], &adc7buff[0]) * 1.0/50000;
 
+        // Check that time delays are within +/- 500us timedelay
       if (((shift0_3 < 0.0005) && (shift0_3 > -0.0005)) && ((shift0_6 < 0.0005) && (shift0_6 > -0.0005)) && ((shift0_7 < 0.0005) && (shift0_7 > -0.0005))) {
+
+          // Chech that if time delay mic a is bigger than zero, then it also have to be numerically bigger than mic b
+          // And same if mic b is bigger than zero, the timedelay has to be numerically bigger than mic a. 
         if (((shift0_3 > 0) && (fabs(shift0_3) > fabs(shift0_6))) || ((shift0_6 > 0) && (fabs(shift0_6) > fabs(shift0_3)))) {  
+
+        // Also check if mic a or b are numerically the same.
           if (fabs(shift0_3) != fabs(shift0_6)) {
+
             angles = direction_angle(shift0_3, shift0_6, shift0_7);
             angles.yAngle = 180-angles.yAngle;        // Inverting y angle to match microphone positioning
+            //angles.xAngle = 180-angles.xAngle;
 
             if ((!isnan(angles.xAngle)) && (!isnan(angles.yAngle))) {
               //angles.xAngle = 180-angles.xAngle;
@@ -96,10 +109,16 @@ void loop() {
               //printf("%i ms \t xy: %.1f \t zy: %.1f \t Avg_xy: %.1f \t avg_zy: %.1f \t a: %.6f \t b: %.6f \t c: %.6f \t x: %.2f \t y: %.2f \t z: %.2f \n", (end_b-start_b)/1000, angles.xAngle, angles.yAngle, sum.xAngle/avgCnt, sum.yAngle/avgCnt, shift0_3, shift0_6, shift0_7, debugPoints.x, debugPoints.y, debugPoints.z);
 
               // MegunoLink debug spamming:
-              printf("{XYPLOT|DATA|angle|%.1f|%.1f}{XYPLOT|DATA|angleAVG|%.1f|%.1f}{XYPLOT|DATA|0_3|135|%.1f}{XYPLOT|DATA|0_6|140|%.1f}{XYPLOT|DATA|0_7|145|%.1f}{XYPLOT|DATA|x|165|%.2f}{XYPLOT|DATA|y|170|%.2f}{XYPLOT|DATA|z|175|%.2f}\n", angles.xAngle, angles.yAngle, avg.xAngle, avg.yAngle, shift0_3*1000000, shift0_6*1000000, shift0_7*1000000, debugPoints.x, debugPoints.y, debugPoints.z);
+              //printf("{XYPLOT|DATA|angle|%.1f|%.1f}{XYPLOT|DATA|angleAVG|%.1f|%.1f}{XYPLOT|DATA|0_3|135|%.1f}{XYPLOT|DATA|0_6|140|%.1f}{XYPLOT|DATA|0_7|145|%.1f}{XYPLOT|DATA|x|165|%.2f}{XYPLOT|DATA|y|170|%.2f}{XYPLOT|DATA|z|175|%.2f}\n", angles.xAngle, angles.yAngle, avg.xAngle, avg.yAngle, shift0_3*1000000, shift0_6*1000000, shift0_7*1000000, debugPoints.x, debugPoints.y, debugPoints.z);
               //printf("%i\t {XYPLOT|DATA|angle|%.1f|%.1f}{XYPLOT|DATA|0_3|135|%.1f}{XYPLOT|DATA|0_6|140|%.1f}{XYPLOT|DATA|0_7|145|%.1f}\n", (end_b-start_b)/1000, angles.xAngle, angles.yAngle, shift0_3*1000000, shift0_6*1000000, shift0_7*1000000);
+            } else {
+                printf("Error: Angle is NAN\n");                                                                                           
             }
+          } else {
+              printf("Error: Absolute value is equal\n");
           }
+        } else {
+        //    printf("Error: Sign error (abs value) \t %f, %f, %f\n", shift0_3, shift0_6, shift0_7);
         }
       }
     }

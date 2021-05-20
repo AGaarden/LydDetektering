@@ -81,9 +81,9 @@ angleSet direction_angle(double ta, double tb, double tc){
     double x;
     double y;
     double z;
-    double xOffset = 0;
-    double yOffset = 0;
-    double zOffset = 0;
+    double xOffset = 0.30;
+    double yOffset = 0.245;
+    double zOffset = -0.05;
     double kDist;
 
     Point coords = direction(ta, tb, tc);

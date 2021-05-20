@@ -14,7 +14,7 @@ Point direction(double ta, double tb, double tc){
     double da = c*ta;
     double db = c*tb;
     double dc = c*tc;
-    double l = 0.135;
+    double l = 0.15;
     double x;
     double y;
     double z;
@@ -81,9 +81,9 @@ angleSet direction_angle(double ta, double tb, double tc){
     double x;
     double y;
     double z;
-    double xOffset = 0;
-    double yOffset = 0;
-    double zOffset = 0;
+    double xOffset = 0.0;
+    double yOffset = 0.0;
+    double zOffset = 0.0;
     double kDist;
 
     Point coords = direction(ta, tb, tc);
@@ -101,7 +101,34 @@ angleSet direction_angle(double ta, double tb, double tc){
     } else {
         temp.yAngle = acos(sqrt(pow(x - xOffset,2)+pow(y - yOffset,2))/kDist)*(180/M_PI)+90;
     }
+
+    //test
+    //printf("%f\t %f\t %f\n", x, y, z);
+    return temp;
+}
+
+angleSet direction_angle_new(double ta, double tb, double tc){
+    angleSet temp;
+    double x;
+    double y;
+    double z;
+    double xOffset = 0.05;
+    double yOffset = 0.195;
+    double zOffset = 0.50;
+    double kDist;
+
+    Point coords = direction(ta, tb, tc);
+
+    x = coords.x;
+    y = coords.y;
+    z = coords.z;
+
+    kDist = sqrt(pow(x-xOffset,2)+pow(y-yOffset,2)+pow((z-zOffset),2));
+
+    temp.xAngle = acos((x - xOffset)/sqrt(pow(x - xOffset,2)+pow(y - yOffset,2)))*(180/M_PI);
     
+    temp.yAngle = acos(-(z-zOffset)/sqrt(pow((y-yOffset),2)+pow((z-zOffset),2)))*(180/M_PI);
+
     //test
     //printf("%f\t %f\t %f\n", x, y, z);
     return temp;

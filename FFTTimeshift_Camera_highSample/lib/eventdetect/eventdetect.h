@@ -6,16 +6,21 @@
 extern float foldning[];
 
 
-#define DCOFFSET 1.3
-#define BUF_CNT 8
+#define DCOFFSET0 1.37
+#define DCOFFSET1 1.33
+#define DCOFFSET2 1.33
+#define DCOFFSET3 1.33
+#define BUF_CNT 4
 #define BUF_LEN 1024
-#define ADC_LEN ((1024*8)/4)
+#define ADC_LEN ((BUF_LEN*BUF_CNT)/4)
+
+#define FFTSIZE BUF_LEN*2
 
 #define I2S0_CLKM_CONF_REG 0x3FF4F0AC
 #define I2S0_SAMPLE_RATE_CONF_REG 0x3FF4F0B0
 
-const float upper_threshold = 0.3;
-const float lower_threshold = -0.3;
+const float upper_threshold = 0.05;
+const float lower_threshold = -0.05;
 
 typedef enum {
     REAL_FORWARD,
